@@ -1,5 +1,6 @@
 defmodule LivedeckWeb.Router do
   use LivedeckWeb, :router
+  import Phoenix.LiveView.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -17,7 +18,7 @@ defmodule LivedeckWeb.Router do
   scope "/", LivedeckWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", DeckLive.Index, :index
   end
 
   # Other scopes may use custom stacks.
