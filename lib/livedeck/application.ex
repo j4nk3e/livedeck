@@ -11,8 +11,7 @@ defmodule Livedeck.Application do
       LivedeckWeb.Telemetry,
       Livedeck.Repo,
       {Ecto.Migrator,
-        repos: Application.fetch_env!(:livedeck, :ecto_repos),
-        skip: skip_migrations?()},
+       repos: Application.fetch_env!(:livedeck, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:livedeck, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Livedeck.PubSub},
       # Start the Finch HTTP client for sending emails
@@ -20,7 +19,9 @@ defmodule Livedeck.Application do
       # Start a worker by calling: Livedeck.Worker.start_link(arg)
       # {Livedeck.Worker, arg},
       # Start to serve requests, typically the last entry
-      LivedeckWeb.Endpoint
+      LivedeckWeb.Endpoint,
+      {DynamicSupervisor, strategy: :one_for_one, name: Livedeck.DeckServer.Supervisor},
+      {Registry, [keys: :unique, name: :deck_registry]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
