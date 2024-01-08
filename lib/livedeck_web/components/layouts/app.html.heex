@@ -8,6 +8,9 @@
         v<%= Application.spec(:phoenix, :vsn) %>
       </p>
     </div>
+    <div class="flex">
+      <p>Connected viewers: <%= Livedeck.DeckServer.get(@server) %></p>
+    </div>
     <div class="flex items-center gap-4 font-semibold leading-6">
       <a href="https://j4nk.dev" class="hover:text-teal-400">
         j4nk.dev

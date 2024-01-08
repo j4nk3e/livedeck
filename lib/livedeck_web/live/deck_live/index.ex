@@ -27,11 +27,13 @@ defmodule LivedeckWeb.DeckLive.Index do
       |> assign(:control_url_svg, qr(control_url))
 
     ~H"""
-    Connected viewers: <%= Livedeck.DeckServer.get(@server) %>
-    <br />
     <%= raw(@url_svg) %><br />Open slides: <%= @livedeck_url %>
     <br />
     <%= raw(@control_url_svg) %><br />Take control: <%= @control_url %>
+    <br />
+    <div class="deck">
+      <%= raw(@slide) %>
+    </div>
     """
   end
 
@@ -40,11 +42,12 @@ defmodule LivedeckWeb.DeckLive.Index do
     pid = Livedeck.DeckServer.start_or_get("deck")
     Livedeck.DeckServer.add(pid, socket.id)
     Logger.info(Livedeck.DeckServer.log(pid))
-    {:ok, socket |> assign(:server, pid)}
-  end
 
-  defp list_decks() do
-    dbg(:code.priv_dir(:livedeck))
-    []
+    s =
+      "#{:code.priv_dir(:livedeck)}/decks/demo/hello.dj"
+      |> File.read!()
+      |> Djot.to_html!()
+
+    {:ok, socket |> assign(:server, pid) |> assign(:slide, s)}
   end
 end

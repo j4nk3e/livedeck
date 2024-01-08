@@ -9,7 +9,7 @@ defmodule Livedeck.DeckServer do
   @initial_state %DeckState{page: 0, controller: false, viewers: %{}}
 
   def start_or_get(name) do
-    case GenServer.start_link(__MODULE__, name, name: {:via, Registry, {:deck_registry, name}}) do
+    case GenServer.start_link(__MODULE__, name, name: {:via, Registry, {Livedeck.DeckServer.Registry, name}}) do
       {:error, {:already_started, pid}} -> pid
       {:ok, pid} -> pid
     end

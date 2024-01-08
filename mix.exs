@@ -33,6 +33,7 @@ defmodule Livedeck.MixProject do
   defp deps do
     [
       {:qr_code, "~> 3.0.0"},
+      {:djot, "~> 0.1.1"},
       {:phoenix, "~> 1.7.10"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.10"},
