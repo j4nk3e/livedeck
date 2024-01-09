@@ -39,15 +39,19 @@ defmodule LivedeckWeb.DeckLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    pid = Livedeck.DeckServer.start_or_get("deck")
-    Livedeck.DeckServer.add(pid, socket.id)
-    Logger.info(Livedeck.DeckServer.log(pid))
+    Livedeck.DynamicSupervisor.add_child("deck")
+
+    if connected?(socket) do
+      Livedeck.Server.add("deck", socket.id)
+    end
+
+    Logger.info(Livedeck.Server.log("deck"))
 
     s =
       "#{:code.priv_dir(:livedeck)}/decks/demo/hello.dj"
       |> File.read!()
       |> Djot.to_html!()
 
-    {:ok, socket |> assign(:server, pid) |> assign(:slide, s)}
+    {:ok, socket |> assign(:server, "deck") |> assign(:slide, s)}
   end
 end

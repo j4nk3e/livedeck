@@ -20,8 +20,8 @@ defmodule Livedeck.Application do
       # {Livedeck.Worker, arg},
       # Start to serve requests, typically the last entry
       LivedeckWeb.Endpoint,
-      {DynamicSupervisor, strategy: :one_for_one, name: Livedeck.DeckServer.Supervisor},
-      {Registry, [keys: :unique, name: Livedeck.DeckServer.Registry]}
+      {Registry, [keys: :unique, name: Livedeck.Registry]},
+      {DynamicSupervisor, strategy: :one_for_one, name: Livedeck.DynamicSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -1,36 +1,55 @@
-defmodule DeckState do
+defmodule Livedeck.State do
   defstruct page: 0, controller: false, viewers: %{}
 end
 
-defmodule Livedeck.DeckServer do
-  use GenServer, restart: :permanent
+defmodule Livedeck.DynamicSupervisor do
+  use DynamicSupervisor
+
+  def start_link(args), do: DynamicSupervisor.start_link(__MODULE__, args, name: __MODULE__)
+  def init(_), do: DynamicSupervisor.init(strategy: :one_for_one)
+
+  def add_child(name) when name |> is_binary do
+    pid = child_process(name)
+    spec = Livedeck.Server.child_spec(name: pid)
+    DynamicSupervisor.start_child(__MODULE__, spec)
+  end
+
+  def remove_child(name) when name |> is_binary do
+    [{pid, _}] = Registry.lookup(Livedeck.Registry, name)
+    :ok = DynamicSupervisor.terminate_child(__MODULE__, pid)
+    Registry.unregister(Livedeck.Registry, name)
+  end
+
+  def child_process(name), do: {:via, Registry, {Livedeck.Registry, name}}
+end
+
+defmodule Livedeck.Server do
+  use GenServer
   require Logger
+  alias Livedeck.State
 
-  @initial_state %DeckState{page: 0, controller: false, viewers: %{}}
+  @initial_state %State{page: 0, controller: false, viewers: %{}}
 
-  def start_or_get(name) do
-    case GenServer.start_link(__MODULE__, name, name: {:via, Registry, {Livedeck.DeckServer.Registry, name}}) do
-      {:error, {:already_started, pid}} -> pid
-      {:ok, pid} -> pid
-    end
+  def start_link(args) do
+    opts = args |> Keyword.take([:name])
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
-  def add(pid, viewer) do
+  def add(name, viewer) do
     Logger.info("Adding viewer #{viewer}")
-    GenServer.call(pid, {:add_viewer, viewer})
+    GenServer.call({:via, Registry, {Livedeck.Registry, name}}, {:add_viewer, viewer})
   end
 
-  def get(pid) do
-    GenServer.call(pid, :get_count)
+  def get(name) do
+    GenServer.call({:via, Registry, {Livedeck.Registry, name}}, :get_count)
   end
 
-  def log(pid) do
-    GenServer.call(pid, :log_state)
+  def log(name) do
+    GenServer.call({:via, Registry, {Livedeck.Registry, name}}, :log_state)
   end
 
   @impl true
-  def init(name) do
-    Logger.info("Starting process #{name}")
+  def init(_args) do
     {:ok, @initial_state}
   end
 
@@ -40,12 +59,12 @@ defmodule Livedeck.DeckServer do
   end
 
   @impl true
-  def handle_call(:get_count, _from, %DeckState{viewers: viewers} = state) do
+  def handle_call(:get_count, _from, %State{viewers: viewers} = state) do
     {:reply, map_size(viewers), state}
   end
 
   @impl true
-  def handle_call({:add_viewer, viewer}, {from, _}, %DeckState{viewers: viewers} = state) do
+  def handle_call({:add_viewer, viewer}, {from, _}, %State{viewers: viewers} = state) do
     # https://github.com/phoenixframework/phoenix_live_view/issues/123#issuecomment-475926480
     Process.monitor(from)
     new_state = %{state | viewers: Map.put(viewers, from, viewer)}
@@ -53,7 +72,7 @@ defmodule Livedeck.DeckServer do
   end
 
   @impl true
-  def handle_info({:DOWN, _ref, :process, pid, _reason}, %DeckState{viewers: viewers} = state) do
+  def handle_info({:DOWN, _ref, :process, pid, _reason}, %State{viewers: viewers} = state) do
     # Use channels to broadcast updates https://hexdocs.pm/phoenix/channels.html#overview
     {v, map} = Map.pop(viewers, pid)
     new_state = %{state | viewers: map}
