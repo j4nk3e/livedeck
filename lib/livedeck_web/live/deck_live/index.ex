@@ -27,22 +27,22 @@ defmodule LivedeckWeb.DeckLive.Index do
       |> assign(:control_url_svg, qr(control_url))
 
     ~H"""
-    <%= raw(@url_svg) %><br />Open slides: <%= @livedeck_url %>
-    <br />
-    <%= raw(@control_url_svg) %><br />Take control: <%= @control_url %>
-    <br />
-    <div class="prose">
+    <div class="prose mb-10" phx-window-keydown="keydown">
+      <p><%= raw(@url_svg) %>Open slides: <%= @livedeck_url %></p>
+      <p><%= raw(@control_url_svg) %>Take control: <%= @control_url %></p>
       <%= raw(@slides |> Enum.at(@slide)) %>
     </div>
-    <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
+    <div class="flex items-center justify-between border-t border-zinc-100 py-3 text-sm">
       <div class="flex items-center gap-4">
-        <.button phx-click="prev-slide">&lt;</.button>
+        <.button phx-click="prev-slide" class="btn" disabled={@slide == 0}>&lt;</.button>
       </div>
       <div class="flex">
         <p><%= @slide + 1 %> / <%= Enum.count(@slides) %></p>
       </div>
       <div class="flex items-center gap-4 font-semibold leading-6">
-        <.button phx-click="next-slide">&gt;</.button>
+        <.button phx-click="next-slide" class="btn" disabled={@slide == Enum.count(@slides) - 1}>
+          &gt;
+        </.button>
       </div>
     </div>
     """
@@ -58,6 +58,21 @@ defmodule LivedeckWeb.DeckLive.Index do
   def handle_event("prev-slide", _value, socket) do
     slide = socket.assigns.slide
     {:noreply, socket |> assign(:slide, max(slide - 1, 0))}
+  end
+
+  @impl true
+  def handle_event("keydown", %{"key" => key}, socket) do
+    case key do
+      "ArrowLeft" ->
+        handle_event("prev-slide", {}, socket)
+
+      "ArrowRight" ->
+        handle_event("next-slide", {}, socket)
+
+      _ ->
+        Logger.debug("Unhandled key #{key}")
+        {:noreply, socket}
+    end
   end
 
   @impl true
