@@ -31,7 +31,7 @@ defmodule LivedeckWeb.DeckLive.Index do
     <br />
     <%= raw(@control_url_svg) %><br />Take control: <%= @control_url %>
     <br />
-    <div class="deck">
+    <div class="prose">
       <%= raw(@slides |> Enum.at(@slide)) %>
     </div>
     <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
@@ -51,7 +51,7 @@ defmodule LivedeckWeb.DeckLive.Index do
   @impl true
   def handle_event("next-slide", _value, socket) do
     slide = socket.assigns.slide
-    {:noreply, socket |> assign(:slide, min(slide + 1, Enum.count(socket.assigns.slides)))}
+    {:noreply, socket |> assign(:slide, min(slide + 1, Enum.count(socket.assigns.slides) - 1))}
   end
 
   @impl true
