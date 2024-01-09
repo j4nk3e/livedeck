@@ -32,9 +32,32 @@ defmodule LivedeckWeb.DeckLive.Index do
     <%= raw(@control_url_svg) %><br />Take control: <%= @control_url %>
     <br />
     <div class="deck">
-      <%= raw(@slide) %>
+      <%= raw(@slides |> Enum.at(@slide)) %>
+    </div>
+    <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
+      <div class="flex items-center gap-4">
+        <.button phx-click="prev-slide">&lt;</.button>
+      </div>
+      <div class="flex">
+        <p><%= @slide + 1 %> / <%= Enum.count(@slides) %></p>
+      </div>
+      <div class="flex items-center gap-4 font-semibold leading-6">
+        <.button phx-click="next-slide">&gt;</.button>
+      </div>
     </div>
     """
+  end
+
+  @impl true
+  def handle_event("next-slide", _value, socket) do
+    slide = socket.assigns.slide
+    {:noreply, socket |> assign(:slide, min(slide + 1, Enum.count(socket.assigns.slides)))}
+  end
+
+  @impl true
+  def handle_event("prev-slide", _value, socket) do
+    slide = socket.assigns.slide
+    {:noreply, socket |> assign(:slide, max(slide - 1, 0))}
   end
 
   @impl true
@@ -51,7 +74,8 @@ defmodule LivedeckWeb.DeckLive.Index do
       "#{:code.priv_dir(:livedeck)}/decks/demo/hello.dj"
       |> File.read!()
       |> Djot.to_html!()
+      |> String.split("<hr>")
 
-    {:ok, socket |> assign(:server, "deck") |> assign(:slide, s)}
+    {:ok, socket |> assign(:server, "deck") |> assign(:slides, s) |> assign(:slide, 0)}
   end
 end
