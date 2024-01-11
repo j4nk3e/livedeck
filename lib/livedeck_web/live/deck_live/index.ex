@@ -1,6 +1,7 @@
 defmodule LivedeckWeb.DeckLive.Index do
   use LivedeckWeb, :live_view
   alias QRCode.Render.SvgSettings
+  alias Phoenix.PubSub
   require Logger
 
   defp qr(s) do
@@ -51,13 +52,17 @@ defmodule LivedeckWeb.DeckLive.Index do
   @impl true
   def handle_event("next-slide", _value, socket) do
     slide = socket.assigns.slide
-    {:noreply, socket |> assign(:slide, min(slide + 1, Enum.count(socket.assigns.slides) - 1))}
+    slide = min(slide + 1, Enum.count(socket.assigns.slides) - 1)
+    Livedeck.Server.page(socket.assigns.server, slide)
+    {:noreply, socket |> assign(:slide, slide)}
   end
 
   @impl true
   def handle_event("prev-slide", _value, socket) do
     slide = socket.assigns.slide
-    {:noreply, socket |> assign(:slide, max(slide - 1, 0))}
+    slide = max(slide - 1, 0)
+    Livedeck.Server.page(socket.assigns.server, slide)
+    {:noreply, socket |> assign(:slide, slide)}
   end
 
   @impl true
@@ -77,13 +82,23 @@ defmodule LivedeckWeb.DeckLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    Livedeck.DynamicSupervisor.add_child("deck")
+    deck_name = "deck"
+    Livedeck.DynamicSupervisor.add_child(deck_name)
 
-    if connected?(socket) do
-      Livedeck.Server.add("deck", socket.id)
+    socket = if connected?(socket) do
+      PubSub.subscribe(Livedeck.PubSub, deck_name)
+      state = Livedeck.Server.add(deck_name, socket.id)
+
+      socket
+      |> assign(:slide, state.slide)
+      |> assign(:viewers, map_size(state.viewers))
+    else
+      socket
+      |> assign(:slide, 0)
+      |> assign(:viewers, 0)
     end
 
-    Logger.info(Livedeck.Server.log("deck"))
+    Logger.info(Livedeck.Server.log(deck_name))
 
     s =
       "#{:code.priv_dir(:livedeck)}/decks/demo/hello.dj"
@@ -91,6 +106,14 @@ defmodule LivedeckWeb.DeckLive.Index do
       |> Djot.to_html!()
       |> String.split("<hr>")
 
-    {:ok, socket |> assign(:server, "deck") |> assign(:slides, s) |> assign(:slide, 0)}
+    {:ok,
+     socket
+     |> assign(:server, deck_name)
+     |> assign(:slides, s)}
+  end
+
+  @impl true
+  def handle_info(%Livedeck.State{slide: s, viewers: v}, socket) do
+    {:noreply, socket |> assign(:slide, s) |> assign(:viewers, map_size(v))}
   end
 end

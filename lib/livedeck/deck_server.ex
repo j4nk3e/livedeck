@@ -1,5 +1,5 @@
 defmodule Livedeck.State do
-  defstruct page: 0, controller: false, viewers: %{}
+  defstruct name: "", slide: 0, controller: false, viewers: %{}
 end
 
 defmodule Livedeck.DynamicSupervisor do
@@ -27,8 +27,9 @@ defmodule Livedeck.Server do
   use GenServer
   require Logger
   alias Livedeck.State
+  alias Phoenix.PubSub
 
-  @initial_state %State{page: 0, controller: false, viewers: %{}}
+  @initial_state %State{name: "", slide: 0, controller: false, viewers: %{}}
 
   def start_link(args) do
     opts = args |> Keyword.take([:name])
@@ -40,8 +41,8 @@ defmodule Livedeck.Server do
     GenServer.call({:via, Registry, {Livedeck.Registry, name}}, {:add_viewer, viewer})
   end
 
-  def get(name) do
-    GenServer.call({:via, Registry, {Livedeck.Registry, name}}, :get_count)
+  def page(name, page) do
+    GenServer.call({:via, Registry, {Livedeck.Registry, name}}, {:page, page})
   end
 
   def log(name) do
@@ -49,13 +50,20 @@ defmodule Livedeck.Server do
   end
 
   @impl true
-  def init(_args) do
-    {:ok, @initial_state}
+  def init(name: {:via, Registry, {Livedeck.Registry, name}}) do
+    {:ok, %{@initial_state | name: name}}
   end
 
   @impl true
   def handle_call(:log_state, _from, state) do
     {:reply, "State: #{inspect(state)}", state}
+  end
+
+  @impl true
+  def handle_call({:page, slide}, _from, state) do
+    new_state = %{state | slide: slide}
+    PubSub.broadcast(Livedeck.PubSub, new_state.name, new_state)
+    {:reply, slide, new_state}
   end
 
   @impl true
@@ -68,7 +76,8 @@ defmodule Livedeck.Server do
     # https://github.com/phoenixframework/phoenix_live_view/issues/123#issuecomment-475926480
     Process.monitor(from)
     new_state = %{state | viewers: Map.put(viewers, from, viewer)}
-    {:reply, :viewer_added, new_state}
+    PubSub.broadcast(Livedeck.PubSub, new_state.name, new_state)
+    {:reply, new_state, new_state}
   end
 
   @impl true
@@ -77,6 +86,7 @@ defmodule Livedeck.Server do
     {v, map} = Map.pop(viewers, pid)
     new_state = %{state | viewers: map}
     Logger.info("Process for viewer #{v} disconnected")
+    PubSub.broadcast(Livedeck.PubSub, new_state.name, new_state)
     {:noreply, new_state}
   end
 end
