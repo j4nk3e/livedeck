@@ -1,4 +1,5 @@
 defmodule LivedeckWeb.DeckLive.Index do
+  alias Livedeck.Presence
   use LivedeckWeb, :live_view
   alias QRCode.Render.SvgSettings
   alias Phoenix.PubSub
@@ -22,10 +23,12 @@ defmodule LivedeckWeb.DeckLive.Index do
 
     assigns =
       assigns
-      |> assign(:url_svg, qr(livedeck_url))
-      |> assign(:livedeck_url, livedeck_url)
-      |> assign(:control_url, control_url)
-      |> assign(:control_url_svg, qr(control_url))
+      |> assign(
+        url_svg: qr(livedeck_url),
+        livedeck_url: livedeck_url,
+        control_url: control_url,
+        control_url_svg: qr(control_url)
+      )
 
     ~H"""
     <div class="prose mb-10" phx-window-keydown="keydown">
@@ -52,17 +55,17 @@ defmodule LivedeckWeb.DeckLive.Index do
   @impl true
   def handle_event("next-slide", _value, socket) do
     slide = socket.assigns.slide
-    slide = min(slide + 1, Enum.count(socket.assigns.slides) - 1)
-    Livedeck.Server.page(socket.assigns.server, slide)
-    {:noreply, socket |> assign(:slide, slide)}
+    d = min(slide + 1, Enum.count(socket.assigns.slides) - 1)
+    s = Livedeck.Server.page(socket.assigns.server, d - slide)
+    {:noreply, socket |> assign(:slide, s)}
   end
 
   @impl true
   def handle_event("prev-slide", _value, socket) do
     slide = socket.assigns.slide
-    slide = max(slide - 1, 0)
-    Livedeck.Server.page(socket.assigns.server, slide)
-    {:noreply, socket |> assign(:slide, slide)}
+    d = max(slide - 1, 0)
+    s = Livedeck.Server.page(socket.assigns.server, d - slide)
+    {:noreply, socket |> assign(:slide, s)}
   end
 
   @impl true
@@ -85,20 +88,10 @@ defmodule LivedeckWeb.DeckLive.Index do
     deck_name = "deck"
     Livedeck.DynamicSupervisor.add_child(deck_name)
 
-    socket = if connected?(socket) do
+    if connected?(socket) do
       PubSub.subscribe(Livedeck.PubSub, deck_name)
-      state = Livedeck.Server.add(deck_name, socket.id)
-
-      socket
-      |> assign(:slide, state.slide)
-      |> assign(:viewers, map_size(state.viewers))
-    else
-      socket
-      |> assign(:slide, 0)
-      |> assign(:viewers, 0)
+      send(self(), :after_join)
     end
-
-    Logger.info(Livedeck.Server.log(deck_name))
 
     s =
       "#{:code.priv_dir(:livedeck)}/decks/demo/hello.dj"
@@ -108,12 +101,36 @@ defmodule LivedeckWeb.DeckLive.Index do
 
     {:ok,
      socket
-     |> assign(:server, deck_name)
-     |> assign(:slides, s)}
+     |> assign(
+       viewers: Presence.list(deck_name) |> map_size(),
+       slide: Livedeck.Server.page(deck_name, 0),
+       server: deck_name,
+       slides: s
+     )}
   end
 
   @impl true
-  def handle_info(%Livedeck.State{slide: s, viewers: v}, socket) do
-    {:noreply, socket |> assign(:slide, s) |> assign(:viewers, map_size(v))}
+  def handle_info(%Livedeck.State{slide: s}, socket) do
+    {:noreply, socket |> assign(:slide, s)}
+  end
+
+  def handle_info(:after_join, socket) do
+    {:ok, _} =
+      Presence.track(self(), socket.assigns.server, socket.id, %{
+        online_at: inspect(System.system_time(:second))
+      })
+
+    {:noreply, socket}
+  end
+
+  def handle_info(
+        %Phoenix.Socket.Broadcast{
+          event: "presence_diff",
+          payload: %{leaves: leave, joins: join}
+        },
+        socket
+      ) do
+    {:noreply,
+     socket |> assign(:viewers, socket.assigns.viewers + map_size(join) - map_size(leave))}
   end
 end

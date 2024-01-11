@@ -20,6 +20,7 @@ defmodule Livedeck.Application do
       # {Livedeck.Worker, arg},
       # Start to serve requests, typically the last entry
       LivedeckWeb.Endpoint,
+      Livedeck.Presence,
       {Registry, [keys: :unique, name: Livedeck.Registry]},
       {DynamicSupervisor, strategy: :one_for_one, name: Livedeck.DynamicSupervisor}
     ]
