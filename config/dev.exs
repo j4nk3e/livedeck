@@ -23,7 +23,7 @@ config :livedeck, LivedeckWeb.Endpoint,
   secret_key_base: "ypCj/01sPOumePfEvisQR5JKut6LxJoFPLMyY3agS28K90P14tdmjCx/gbT8Cpaw",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]},
   ]
 
 # ## SSL Support
@@ -55,8 +55,8 @@ config :livedeck, LivedeckWeb.Endpoint,
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/livedeck_web/(controllers|live|components)/.*(ex|heex)$"
-    ]
+      ~r"lib/livedeck_web/(controllers|live|components)/.*(ex|heex)$",
+    ],
   ]
 
 # Enable dev routes for dashboard and mailbox

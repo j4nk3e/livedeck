@@ -9,7 +9,7 @@ defmodule Livedeck.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
     ]
   end
 
@@ -19,7 +19,7 @@ defmodule Livedeck.MixProject do
   def application do
     [
       mod: {Livedeck.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools],
     ]
   end
 
@@ -52,7 +52,8 @@ defmodule Livedeck.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.1"}
+      {:bandit, "~> 1.1"},
+      {:freedom_formatter, ">= 2.0.0", only: :dev},
     ]
   end
 
@@ -70,7 +71,7 @@ defmodule Livedeck.MixProject do
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],
-      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
+      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"],
     ]
   end
 end

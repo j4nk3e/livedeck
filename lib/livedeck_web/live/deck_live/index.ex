@@ -117,7 +117,7 @@ defmodule LivedeckWeb.DeckLive.Index do
   def handle_info(:after_join, socket) do
     {:ok, _} =
       Presence.track(self(), socket.assigns.server, socket.id, %{
-        online_at: inspect(System.system_time(:second))
+        online_at: inspect(System.system_time(:second)),
       })
 
     {:noreply, socket}
@@ -126,7 +126,7 @@ defmodule LivedeckWeb.DeckLive.Index do
   def handle_info(
         %Phoenix.Socket.Broadcast{
           event: "presence_diff",
-          payload: %{leaves: leave, joins: join}
+          payload: %{leaves: leave, joins: join},
         },
         socket
       ) do

@@ -17,7 +17,7 @@ config :livedeck, LivedeckWeb.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: LivedeckWeb.ErrorHTML, json: LivedeckWeb.ErrorJSON],
-    layout: false
+    layout: false,
   ],
   pubsub_server: Livedeck.PubSub,
   live_view: [signing_salt: "NlY8AZp7"]
@@ -38,7 +38,7 @@ config :esbuild,
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)},
   ]
 
 # Configure tailwind (the version is required)
@@ -50,7 +50,7 @@ config :tailwind,
       --input=css/app.css
       --output=../priv/static/assets/app.css
     ),
-    cd: Path.expand("../assets", __DIR__)
+    cd: Path.expand("../assets", __DIR__),
   ]
 
 # Configures Elixir's Logger

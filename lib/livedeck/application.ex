@@ -22,7 +22,7 @@ defmodule Livedeck.Application do
       LivedeckWeb.Endpoint,
       Livedeck.Presence,
       {Registry, [keys: :unique, name: Livedeck.Registry]},
-      {DynamicSupervisor, strategy: :one_for_one, name: Livedeck.DynamicSupervisor}
+      {DynamicSupervisor, strategy: :one_for_one, name: Livedeck.DynamicSupervisor},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
