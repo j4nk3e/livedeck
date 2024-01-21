@@ -10,8 +10,20 @@
         </p>
       </div>
       <div class="flex">
-        <p>Connected viewers: <%= @viewers %>
-        </p>
+        <details class="dropdown dropdown-bottom">
+          <summary class="btn">Connected viewers <div class="badge badge-secondary">
+              <%= @viewers %>
+            </div>
+          </summary>
+          <div class="p-10 content-center shadow menu dropdown-content z-[1] bg-base-300 rounded-box">
+            <div>
+              <%= raw(@url_svg) %>
+            </div>
+            <p class="content-center mt-5 mx-auto font-semibold text-3xl">
+              <%= @livedeck_url %>
+            </p>
+          </div>
+        </details>
       </div>
       <div class="flex items-center gap-4 font-semibold leading-6">
         <div class="flex dropdown">

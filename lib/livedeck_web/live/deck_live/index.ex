@@ -8,7 +8,7 @@ defmodule LivedeckWeb.DeckLive.Index do
   @themes ["forest", "dark", "synthwave"]
 
   defp qr(s) do
-    svg_settings = %SvgSettings{background_opacity: 0, qrcode_color: "#ffffff"}
+    svg_settings = %SvgSettings{background_opacity: 0, scale: 20, qrcode_color: "#ffffff"}
 
     {:ok, qr} =
       s
@@ -20,22 +20,8 @@ defmodule LivedeckWeb.DeckLive.Index do
 
   @impl true
   def render(assigns) do
-    livedeck_url = LivedeckWeb.Endpoint.url()
-    control_url = "#{livedeck_url}/control"
-
-    assigns =
-      assigns
-      |> assign(
-        url_svg: qr(livedeck_url),
-        livedeck_url: livedeck_url,
-        control_url: control_url,
-        control_url_svg: qr(control_url)
-      )
-
     ~H"""
     <div class="prose mb-10" phx-window-keydown="keydown">
-      <p><%= raw(@url_svg) %>Open slides: <%= @livedeck_url %></p>
-      <p><%= raw(@control_url_svg) %>Take control: <%= @control_url %></p>
       <%= raw(@slides |> Enum.at(@slide)) %>
     </div>
     """
@@ -88,6 +74,8 @@ defmodule LivedeckWeb.DeckLive.Index do
       |> Djot.to_html!()
       |> String.split("<hr>")
 
+    livedeck_url = LivedeckWeb.Endpoint.url()
+
     {:ok,
      socket
      |> assign(
@@ -96,7 +84,9 @@ defmodule LivedeckWeb.DeckLive.Index do
        server: deck_name,
        slides: s,
        themes: @themes,
-       theme: hd(@themes)
+       theme: hd(@themes),
+       url_svg: qr(livedeck_url),
+       livedeck_url: livedeck_url
      )}
   end
 
