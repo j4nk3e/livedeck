@@ -328,12 +328,12 @@ defmodule LivedeckWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
+    <div phx-feedback-for={@name} class="dropdown">
+      <.label for={@id} ><%= @label %></.label>
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class="select select-bordered w-full max-w-xs"
         multiple={@multiple}
         {@rest}
       >

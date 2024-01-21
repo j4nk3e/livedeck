@@ -5,8 +5,10 @@ defmodule LivedeckWeb.DeckLive.Index do
   alias Phoenix.PubSub
   require Logger
 
+  @themes ["forest", "dark", "synthwave"]
+
   defp qr(s) do
-    svg_settings = %SvgSettings{background_opacity: 0, qrcode_color: {255, 255, 255}}
+    svg_settings = %SvgSettings{background_opacity: 0, qrcode_color: "#ffffff"}
 
     {:ok, qr} =
       s
@@ -40,6 +42,7 @@ defmodule LivedeckWeb.DeckLive.Index do
       <div class="flex items-center gap-4">
         <.button phx-click="prev-slide" class="btn" disabled={@slide == 0}>&lt;</.button>
       </div>
+
       <div class="flex">
         <p><%= @slide + 1 %> / <%= Enum.count(@slides) %></p>
       </div>
@@ -105,7 +108,9 @@ defmodule LivedeckWeb.DeckLive.Index do
        viewers: Presence.list(deck_name) |> map_size(),
        slide: Livedeck.Server.page(deck_name, 0),
        server: deck_name,
-       slides: s
+       slides: s,
+       themes: @themes,
+       theme: hd(@themes)
      )}
   end
 
@@ -114,6 +119,7 @@ defmodule LivedeckWeb.DeckLive.Index do
     {:noreply, socket |> assign(:slide, s)}
   end
 
+  @impl true
   def handle_info(:after_join, socket) do
     {:ok, _} =
       Presence.track(self(), socket.assigns.server, socket.id, %{
