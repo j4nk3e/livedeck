@@ -1,5 +1,5 @@
 defmodule Livedeck.State do
-  defstruct name: "", slide: 0, controller: false
+  defstruct name: "", slide: 0, pages: 0
 end
 
 defmodule Livedeck.DynamicSupervisor do
@@ -8,9 +8,9 @@ defmodule Livedeck.DynamicSupervisor do
   def start_link(args), do: DynamicSupervisor.start_link(__MODULE__, args, name: __MODULE__)
   def init(_), do: DynamicSupervisor.init(strategy: :one_for_one)
 
-  def add_child(name) when name |> is_binary do
+  def add_child({name, pages}) when name |> is_binary do
     pid = child_process(name)
-    spec = Livedeck.Server.child_spec(name: pid)
+    spec = Livedeck.Server.child_spec(name: pid, pages: pages)
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
 
@@ -29,26 +29,33 @@ defmodule Livedeck.Server do
   alias Livedeck.State
   alias Phoenix.PubSub
 
-  @initial_state %State{name: "", slide: 0, controller: false}
-
   def start_link(args) do
     opts = args |> Keyword.take([:name])
     GenServer.start_link(__MODULE__, args, opts)
   end
 
-  def page(name, page) do
+  def set_page(name, page) do
     GenServer.call({:via, Registry, {Livedeck.Registry, name}}, {:page, page})
   end
 
+  def get_page(name) do
+    GenServer.call({:via, Registry, {Livedeck.Registry, name}}, :get_page)
+  end
+
   @impl true
-  def init(name: {:via, Registry, {Livedeck.Registry, name}}) do
-    {:ok, %{@initial_state | name: name}}
+  def init(name: {:via, Registry, {Livedeck.Registry, name}}, pages: pages) do
+    {:ok, %{%State{} | name: name, pages: pages}}
   end
 
   @impl true
   def handle_call({:page, page}, _from, state) do
-    new_state = %{state | slide: state.slide + page}
+    new_state = %{state | slide: min(state.pages - 1, max(0, page))}
     PubSub.broadcast(Livedeck.PubSub, new_state.name, new_state)
     {:reply, new_state.slide, new_state}
+  end
+
+  @impl true
+  def handle_call(:get_page, _from, state) do
+    {:reply, state.slide, state}
   end
 end

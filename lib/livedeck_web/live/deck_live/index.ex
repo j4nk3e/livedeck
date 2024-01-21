@@ -30,16 +30,29 @@ defmodule LivedeckWeb.DeckLive.Index do
   @impl true
   def handle_event("next-slide", _value, socket) do
     slide = socket.assigns.slide
-    d = min(slide + 1, Enum.count(socket.assigns.slides) - 1)
-    s = Livedeck.Server.page(socket.assigns.server, d - slide)
+
+    s =
+      if socket.assigns.role == "controller" do
+        Livedeck.Server.set_page(socket.assigns.server, slide + 1)
+      else
+        presenter = Livedeck.Server.get_page(socket.assigns.server)
+        min(slide + 1, presenter)
+      end
+
     {:noreply, socket |> assign(:slide, s)}
   end
 
   @impl true
   def handle_event("prev-slide", _value, socket) do
     slide = socket.assigns.slide
-    d = max(slide - 1, 0)
-    s = Livedeck.Server.page(socket.assigns.server, d - slide)
+
+    s =
+      if socket.assigns.role == "controller" do
+        Livedeck.Server.set_page(socket.assigns.server, slide - 1)
+      else
+        max(slide - 1, 0)
+      end
+
     {:noreply, socket |> assign(:slide, s)}
   end
 
@@ -59,28 +72,28 @@ defmodule LivedeckWeb.DeckLive.Index do
   end
 
   @impl true
-  def mount(_params, _session, socket) do
-    deck_name = "deck"
-    Livedeck.DynamicSupervisor.add_child(deck_name)
+  def mount(%{"deck" => deck_name, "role" => role}, _session, socket) do
+    s =
+      "#{:code.priv_dir(:livedeck)}/decks/demo/#{deck_name}.dj"
+      |> File.read!()
+      |> Djot.to_html!()
+      |> String.split("<hr>")
+
+    Livedeck.DynamicSupervisor.add_child({deck_name, length(s)})
 
     if connected?(socket) do
       PubSub.subscribe(Livedeck.PubSub, deck_name)
       send(self(), :after_join)
     end
 
-    s =
-      "#{:code.priv_dir(:livedeck)}/decks/demo/hello.dj"
-      |> File.read!()
-      |> Djot.to_html!()
-      |> String.split("<hr>")
-
-    livedeck_url = LivedeckWeb.Endpoint.url()
+    livedeck_url = "#{LivedeckWeb.Endpoint.url()}/#{deck_name}/view"
 
     {:ok,
      socket
      |> assign(
        viewers: Presence.list(deck_name) |> map_size(),
-       slide: Livedeck.Server.page(deck_name, 0),
+       slide: Livedeck.Server.get_page(deck_name),
+       role: role,
        server: deck_name,
        slides: s,
        themes: @themes,

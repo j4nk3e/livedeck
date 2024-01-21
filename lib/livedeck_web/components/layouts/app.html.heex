@@ -68,7 +68,8 @@
         </p>
       </div>
       <div class="flex items-center gap-4 font-semibold leading-6">
-        <.button phx-click="next-slide" class="btn" disabled={@slide==Enum.count(@slides) - 1}>
+        <.button phx-click="next-slide" class="btn" disabled={ if @role=="controller" do @slide==length(@slides) - 1
+          else @slide==Livedeck.Server.get_page(@server) end }>
           &gt;
         </.button>
       </div>

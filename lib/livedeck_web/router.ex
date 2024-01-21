@@ -18,7 +18,7 @@ defmodule LivedeckWeb.Router do
   scope "/", LivedeckWeb do
     pipe_through :browser
 
-    live "/", DeckLive.Index, :index
+    live "/:deck/:role", DeckLive.Index, :index
   end
 
   # Other scopes may use custom stacks.
