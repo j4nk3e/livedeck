@@ -1,45 +1,65 @@
-<header class="px-4 sm:px-6 lg:px-8">
-  <div class="flex items-center justify-between border-b py-3 text-sm">
-    <div class="flex items-center gap-4">
-      <a href="/">
-        <img src={~p"/images/logo.svg"} width="36" />
-      </a>
-      <p class="bg-gray-400 text-black rounded-full px-2 font-medium leading-6">
-        v<%= Application.spec(:phoenix, :vsn) %>
-      </p>
-    </div>
-    <div class="flex">
-      <p>Connected viewers: <%= @viewers %>
-      </p>
-    </div>
-    <div class="flex items-center gap-4 font-semibold leading-6">
-      <div class="flex dropdown">
-        <div tabindex="0" role="button" class="btn m-1">
-          Theme
-          <svg width="12px" height="12px" class="h-2 w-2 fill-current opacity-60 inline-block"
-            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048">
-            <path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path>
-          </svg>
-        </div>
-        <ul tabindex="0" class="dropdown-content z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-52">
-          <%= for {k,v} <- @themes |> Enum.map(fn e -> {String.capitalize(e), e} end) do %>
-            <li><input type="radio" name="theme-dropdown"
-                class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label={k} value={v} /></li>
-            <% end %>
-        </ul>
+<div class="flex flex-col h-screen">
+  <header class="px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between border-b py-3 text-sm">
+      <div class="flex items-center gap-4">
+        <a href="/">
+          <img src={~p"/images/logo.svg"} width="36" />
+        </a>
+        <p class="bg-gray-400 text-black rounded-full px-2 font-medium leading-6">
+          v<%= Application.spec(:phoenix, :vsn) %>
+        </p>
       </div>
-      <a href="https://j4nk.dev" class="hover:text-teal-400">
-        j4nk.dev
-      </a>
-      <a href="https://github.com/j4nk3e/livedeck" class="hover:text-teal-400">
-        GitHub
-      </a>
+      <div class="flex">
+        <p>Connected viewers: <%= @viewers %>
+        </p>
+      </div>
+      <div class="flex items-center gap-4 font-semibold leading-6">
+        <div class="flex dropdown">
+          <div tabindex="0" role="button" class="btn m-1">
+            Theme
+            <svg width="12px" height="12px" class="h-2 w-2 fill-current opacity-60 inline-block"
+              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048">
+              <path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path>
+            </svg>
+          </div>
+          <ul tabindex="0" class="dropdown-content z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-52">
+            <%= for {k,v} <- @themes |> Enum.map(fn e -> {String.capitalize(e), e} end) do %>
+              <li><input type="radio" name="theme-dropdown"
+                  class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label={k} value={v} /></li>
+              <% end %>
+          </ul>
+        </div>
+        <a href="https://j4nk.dev" class="hover:text-teal-400">
+          j4nk.dev
+        </a>
+        <a href="https://github.com/j4nk3e/livedeck" class="hover:text-teal-400">
+          GitHub
+        </a>
+      </div>
     </div>
-  </div>
-</header>
-<main class="px-4 py-20 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-2xl">
-    <.flash_group flash={@flash} />
-    <%= @inner_content %>
-  </div>
-</main>
+  </header>
+  <main class="px-4 py-12 sm:px-6 lg:px-8 mb-auto">
+    <div class="mx-auto max-w-2xl">
+      <.flash_group flash={@flash} />
+      <%= @inner_content %>
+    </div>
+  </main>
+  <footer class="px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between border-t py-3 text-sm">
+      <div class="flex items-center gap-4">
+        <.button phx-click="prev-slide" class="btn" disabled={@slide==0}>&lt;</.button>
+      </div>
+
+      <div class="flex">
+        <p>
+          <%= @slide + 1 %> / <%= Enum.count(@slides) %>
+        </p>
+      </div>
+      <div class="flex items-center gap-4 font-semibold leading-6">
+        <.button phx-click="next-slide" class="btn" disabled={@slide==Enum.count(@slides) - 1}>
+          &gt;
+        </.button>
+      </div>
+    </div>
+  </footer>
+</div>

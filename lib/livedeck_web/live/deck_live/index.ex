@@ -38,20 +38,6 @@ defmodule LivedeckWeb.DeckLive.Index do
       <p><%= raw(@control_url_svg) %>Take control: <%= @control_url %></p>
       <%= raw(@slides |> Enum.at(@slide)) %>
     </div>
-    <div class="flex items-center justify-between border-t border-zinc-100 py-3 text-sm">
-      <div class="flex items-center gap-4">
-        <.button phx-click="prev-slide" class="btn" disabled={@slide == 0}>&lt;</.button>
-      </div>
-
-      <div class="flex">
-        <p><%= @slide + 1 %> / <%= Enum.count(@slides) %></p>
-      </div>
-      <div class="flex items-center gap-4 font-semibold leading-6">
-        <.button phx-click="next-slide" class="btn" disabled={@slide == Enum.count(@slides) - 1}>
-          &gt;
-        </.button>
-      </div>
-    </div>
     """
   end
 
