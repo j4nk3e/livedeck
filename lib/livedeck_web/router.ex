@@ -41,5 +41,7 @@ defmodule LivedeckWeb.Router do
       live_dashboard "/dashboard", metrics: LivedeckWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+
+    use Kaffy.Routes, scope: "/admin", pipe_through: [:browser]
   end
 end

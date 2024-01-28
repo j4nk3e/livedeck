@@ -61,6 +61,16 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :kaffy,
+  otp_app: :livedeck,
+  ecto_repo: Livedeck.Repo,
+  router: LivedeckWeb.Router,
+  # optional keys
+  hide_dashboard: true,
+  home_page: [schema: [:decks, :deck]],
+  enable_context_dashboards: true,
+  admin_footer: "Kaffy © 2024"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

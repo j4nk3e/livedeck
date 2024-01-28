@@ -53,6 +53,7 @@ defmodule Livedeck.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.1"},
+      {:kaffy, "~> 0.10.0"},
       {:freedom_formatter, ">= 2.0.0", only: :dev},
     ]
   end
