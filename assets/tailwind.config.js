@@ -11,11 +11,22 @@ module.exports = {
     "../lib/livedeck_web.ex",
     "../lib/livedeck_web/**/*.*ex"
   ],
+  safelist: [{
+    pattern: /hljs+/,
+  }],
   theme: {
     extend: {
       colors: {
         brand: "#FD4F00",
       }
+    },
+    hljs: {
+      theme: 'github-dark-dimmed',
+      custom: {
+        base: {
+          background: 'unset',
+        },
+      },
     },
   },
   daisyui: {
@@ -31,6 +42,7 @@ module.exports = {
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"), 
     require('daisyui'),
+    require('tailwind-highlightjs'),
     // Allows prefixing tailwind classes with LiveView classes to add rules
     // only when LiveView classes are applied, for example:
     //
