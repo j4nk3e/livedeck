@@ -1,24 +1,54 @@
-hello *world*!
+# Livedeck
 
+This is how you do a code block:
+
+::: center
+```elixir
+"#{:code.priv_dir(:livedeck)}/decks/demo/#{deck_name}.dj"
+|> File.read!()
+|> Djot.to_html!()
+|> String.split("<hr>")
 ```
-Code block
-```
+:::
 
 ***
 
-# Slide 2
+# Styling text
 
-> Blockquote
+> a block quote.
+
+_emphasized text_
+
+*strong emphasis*
 
 ***
 
-# Title
+# Lists
 
-## Slide 3
+1.  This is a
+ list item.
+
+ > containing a block quote
 
 * List
 
     * sublist
     * test
 
-* asdf 123
+***
+
+::: center
+# Tables
+:::
+
+::: center
+::: w-25
+
+| a  |  b |
+|----|:--:|
+| 1  | 2  |
+|:---|---:|
+| 3  | 4  |
+
+:::
+:::

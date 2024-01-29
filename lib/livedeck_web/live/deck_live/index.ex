@@ -21,7 +21,7 @@ defmodule LivedeckWeb.DeckLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="prose max-w-screen-xl px-3 mx-auto my-auto aspect-video" phx-window-keydown="keydown">
+    <div class="prose max-w-screen-xl px-3 mx-auto my-auto aspect-video" style="zoom: 200%" phx-window-keydown="keydown">
       <%= raw(@slides |> Enum.at(@slide)) %>
     </div>
     """
